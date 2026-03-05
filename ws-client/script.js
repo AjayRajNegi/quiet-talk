@@ -1,31 +1,34 @@
 const ws = new WebSocket("ws://localhost:8081");
-ws.binaryType = "arraybuffer";
 
 ws.addEventListener("open", () => {
   console.log("connected.");
 });
 
 ws.addEventListener("message", (event) => {
-  const text =
-    event.data instanceof ArrayBuffer
-      ? new TextDecoder().decode(event.data)
-      : event.data;
-
   const messages = document.getElementById("messages");
-  const newMessage = document.createElement("div");
+  if (!messages) return;
 
-  newMessage.textContent = text;
-  console.log(text);
-  messages.appendChild(newMessage);
+  const div = document.createElement("div");
+  div.textContent = event.data;
+  messages.appendChild(div);
+  console.log("received:", event.data);
 });
 
-ws.addEventListener("close", () => {
-  console.log("disconnected");
+ws.addEventListener("error", (event) => {
+  console.error("WebSocket error:", event);
 });
 
-document.getElementById("send").addEventListener("click", () => {
+ws.addEventListener("close", ({ code, reason }) => {
+  console.log(`disconnected (code=${code}, reason=${reason})`);
+});
+
+document.getElementById("send")?.addEventListener("click", () => {
   const input = document.getElementById("message");
-  console.log(input.value);
-  ws.send(input.value);
+  if (!input) return;
+
+  const text = input.value.trim();
+  if (!text || ws.readyState !== WebSocket.OPEN) return;
+
+  ws.send(text);
   input.value = "";
 });
