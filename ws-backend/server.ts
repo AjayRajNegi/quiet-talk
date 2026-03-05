@@ -1,60 +1,40 @@
 import { WebSocket, WebSocketServer } from "ws";
 
 const PORT = 8081;
-const HEARTBEAT_INTERVAL_MS = 30_000;
-
 const wss = new WebSocketServer({ port: PORT });
 
-type LiveSocket = WebSocket & { isAlive: boolean };
+const clientNames = new Map<WebSocket, string>();
+let clientCounter = 0;
 
-function broadcast(sender: WebSocket, message: string): void {
+function broadcastClientList() {
+  const names = Array.from(clientNames.values());
+  const payload = JSON.stringify({ type: "clients", names });
+
   for (const client of wss.clients) {
-    if (client !== sender && client.readyState === WebSocket.OPEN) {
-      client.send(message);
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(payload);
     }
   }
 }
 
-const heartbeat = setInterval(() => {
-  for (const raw of wss.clients) {
-    const client = raw as LiveSocket;
-    if (!client.isAlive) {
-      client.terminate();
-      continue;
-    }
-    client.isAlive = false;
-    client.ping();
-  }
-}, HEARTBEAT_INTERVAL_MS);
-
-wss.on("connection", (raw: WebSocket) => {
-  const socket = raw as LiveSocket;
-  socket.isAlive = true;
-
-  socket.on("pong", () => {
-    socket.isAlive = true;
-  });
+wss.on("connection", (socket: WebSocket) => {
+  //Assigning a name to client
+  const name = `User-${++clientCounter}`;
+  clientNames.set(socket, name);
+  broadcastClientList();
 
   socket.on("message", (data, isBinary) => {
     if (isBinary) return;
-    broadcast(socket, data.toString());
-  });
-
-  socket.on("error", (err) => {
-    console.error("Socket error:", err.message);
+    const payload = JSON.stringify({ type: "message", text: data.toString() });
+    for (const client of wss.clients) {
+      if (client !== socket && client.readyState === WebSocket.OPEN) {
+        client.send(payload);
+      }
+    }
   });
 
   socket.on("close", () => {
-    console.log("Client disconnected");
+    clientNames.delete(socket);
+    broadcastClientList();
   });
 });
-
-wss.on("error", (err) => {
-  console.error("Server error:", err.message);
-});
-
-wss.on("close", () => {
-  clearInterval(heartbeat);
-});
-
-console.log(`WebSocket server listening on ws://localhost:${PORT}`);
