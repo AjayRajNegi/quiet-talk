@@ -19,14 +19,18 @@ function broadcastClientList() {
 
 wss.on("connection", (socket: WebSocket) => {
   //Assigning a name to client
-  //const name = `User-${++clientCounter}`;
-  const name = `User-${Date.now()}`;
+  const name = `User-${++clientCounter}`;
+  // const name = `User-${Date.now()}`;
   clientNames.set(socket, name);
   broadcastClientList();
 
   socket.on("message", (data, isBinary) => {
     if (isBinary) return;
-    const payload = JSON.stringify({ type: "message", text: data.toString() });
+    const payload = JSON.stringify({
+      type: "message",
+      id: name,
+      text: data.toString(),
+    });
     for (const client of wss.clients) {
       // if (client !== socket && client.readyState === WebSocket.OPEN) {
       //   client.send(payload);

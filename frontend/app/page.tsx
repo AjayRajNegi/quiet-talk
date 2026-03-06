@@ -4,8 +4,14 @@ import { useEffect, useRef, useState } from "react";
 import Members from "@/components/Members";
 import Chat from "@/components/Chat";
 
+type MessageObjectType = {
+  id: string;
+  message: string;
+};
+
 export default function Home() {
   const [messages, setMessages] = useState<string[]>([]);
+  const [messageObject, setMessageObject] = useState<MessageObjectType[]>([]);
   const [clients, setClients] = useState<string[]>([]);
   const wsRef = useRef<WebSocket | null>(null);
 
@@ -22,6 +28,10 @@ export default function Home() {
         setClients(payload.names);
       } else if (payload.type === "message") {
         setMessages((prev) => [...prev, payload.text]);
+        setMessageObject((prev) => [
+          ...prev,
+          { id: payload.id, message: payload.text },
+        ]);
       }
     });
 
@@ -35,11 +45,15 @@ export default function Home() {
   return (
     <main className="bg-cyan-400 w-full min-h-screen flex items-center">
       <div className="max-w-7xl w-7xl mx-auto h-[90vh]  bg-black flex rounded-2xl p-5 gap-5 border-2 border-white/70">
-        <div className="w-1/4 h-full rounded-xl border-2 border-white/70 p-2">
+        <div className="w-1/4 h-full rounded-xl border-2 border-white/70 p-2 bg-gray-800 ">
           <Members clients={clients} />
         </div>
         <div className="w-3/4 h-full rounded-2xl border-2 border-white/70">
-          <Chat messages={messages} wsRef={wsRef} />
+          <Chat
+            messages={messages}
+            wsRef={wsRef}
+            messageObject={messageObject}
+          />
         </div>
       </div>
     </main>

@@ -1,11 +1,16 @@
 import { RefObject, useEffect, useState } from "react";
 
+type MessageObjectType = {
+  id: string;
+  message: string;
+};
 type ChatProps = {
   messages: string[];
   wsRef: RefObject<WebSocket | null>;
+  messageObject: MessageObjectType[];
 };
 
-export default function Chat({ messages, wsRef }: ChatProps) {
+export default function Chat({ messages, wsRef, messageObject }: ChatProps) {
   const [input, setInput] = useState<string>("");
 
   function sendHandler() {
@@ -15,7 +20,8 @@ export default function Chat({ messages, wsRef }: ChatProps) {
 
   useEffect(() => {
     console.log(messages);
-  }, [messages]);
+    console.log(messageObject);
+  }, [messages, messageObject]);
 
   return (
     <div className="w-full h-full  mx-auto p-6 bg-gray-800 rounded-xl shadow-md">
@@ -24,11 +30,24 @@ export default function Chat({ messages, wsRef }: ChatProps) {
 
       <div className="w-full h-[94%] flex flex-col justify-between">
         {/* Messages */}
-        <ul className="">
+        {/* <ul className="">
           {messages.map((message, index) => (
-            <li key={index} className="p-4 bg-gray-700 rounded-xl">
+            <li key={index} className="p-2 mt-1 bg-gray-700 rounded-xl">
               <p className="text-white">{message}</p>
             </li>
+          ))}
+        </ul> */}
+        <ul className="">
+          {messageObject.map((message, index) => (
+            <div key={index} className="p-2 mt-1 bg-gray-700 rounded-xl">
+              <li className=" flex items-center gap-1">
+                <div className="w-2 h-2 rounded-full bg-white" />
+                <p className="text-green-500 font-semibold text-sm">
+                  {message.id}
+                </p>
+              </li>
+              <p className="text-white pl-3">{message.message}</p>
+            </div>
           ))}
         </ul>
         {/* Input field and Send button */}
