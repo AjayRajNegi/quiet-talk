@@ -112,6 +112,7 @@ wss.on("connection", (socket: ExtendedWebSocket) => {
       }
 
       rooms.get(roomId)!.add(socket);
+      console.log(rooms.get(roomId));
 
       broadcastToRoom(
         roomId,
