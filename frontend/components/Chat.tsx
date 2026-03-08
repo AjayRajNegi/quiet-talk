@@ -5,23 +5,17 @@ type MessageObjectType = {
   message: string;
 };
 type ChatProps = {
-  messages: string[];
   wsRef: RefObject<WebSocket | null>;
   messageObject: MessageObjectType[];
 };
 
-export default function Chat({ messages, wsRef, messageObject }: ChatProps) {
+export default function Chat({ wsRef, messageObject }: ChatProps) {
   const [input, setInput] = useState<string>("");
 
   function sendHandler() {
-    wsRef.current?.send(input);
+    wsRef.current?.send(JSON.stringify({ type: "chat", message: input }));
     setInput("");
   }
-
-  useEffect(() => {
-    console.log(messages);
-    console.log(messageObject);
-  }, [messages, messageObject]);
 
   return (
     <div className="w-full h-full  mx-auto p-6 bg-gray-800 rounded-xl shadow-md">
@@ -30,13 +24,6 @@ export default function Chat({ messages, wsRef, messageObject }: ChatProps) {
 
       <div className="w-full h-[94%] flex flex-col justify-between">
         {/* Messages */}
-        {/* <ul className="">
-          {messages.map((message, index) => (
-            <li key={index} className="p-2 mt-1 bg-gray-700 rounded-xl">
-              <p className="text-white">{message}</p>
-            </li>
-          ))}
-        </ul> */}
         <ul className="">
           {messageObject.map((message, index) => (
             <div key={index} className="p-2 mt-1 bg-gray-700 rounded-xl">

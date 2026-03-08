@@ -10,7 +10,6 @@ type MessageObjectType = {
 };
 
 export default function Home() {
-  const [messages, setMessages] = useState<string[]>([]);
   const [messageObject, setMessageObject] = useState<MessageObjectType[]>([]);
   const [clients, setClients] = useState<string[]>([]);
   const wsRef = useRef<WebSocket | null>(null);
@@ -19,7 +18,9 @@ export default function Home() {
     const ws = new WebSocket("ws://localhost:8081");
     wsRef.current = ws;
 
-    ws.addEventListener("open", () => console.log("Connected"));
+    ws.addEventListener("open", () => {
+      ws.send(JSON.stringify({ type: "join", room: "general" }));
+    });
 
     ws.addEventListener("message", (event: MessageEvent<string>) => {
       const payload = JSON.parse(event.data);
@@ -27,14 +28,24 @@ export default function Home() {
       if (payload.type === "clients") {
         setClients(payload.names);
       } else if (payload.type === "message") {
-        setMessages((prev) => [...prev, payload.text]);
         setMessageObject((prev) => [
           ...prev,
           { id: payload.id, message: payload.text },
         ]);
+      } else if (payload.type === "chat") {
+        setMessageObject((prev) => [
+          ...prev,
+          { id: payload.username, message: payload.message },
+        ]);
+      } else if (payload.type === "notification") {
+        setMessageObject((prev) => [
+          ...prev,
+          { id: "system", message: payload.message },
+        ]);
+      } else if (payload.type === "users") {
+        setClients(payload.users);
       }
     });
-
     ws.addEventListener("error", (e) => console.error("Client error:", e));
     ws.addEventListener("close", ({ code, reason }) =>
       console.log(`Disconnected (code=${code}, reason=${reason})`),
@@ -49,11 +60,7 @@ export default function Home() {
           <Members clients={clients} />
         </div>
         <div className="w-full md:w-3/4 h-full rounded-2xl border-2 border-white/70">
-          <Chat
-            messages={messages}
-            wsRef={wsRef}
-            messageObject={messageObject}
-          />
+          <Chat wsRef={wsRef} messageObject={messageObject} />
         </div>
       </div>
     </main>
