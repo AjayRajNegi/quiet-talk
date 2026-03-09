@@ -23,6 +23,21 @@ function broadcastClientList() {
   }
 }
 
+function broadcastRooms() {
+  const roomNames = Array.from(rooms.keys());
+
+  const payload = JSON.stringify({
+    type: "rooms",
+    roomNames,
+  });
+
+  for (const client of wss.clients) {
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(payload);
+    }
+  }
+}
+
 function broadcastToRoom(
   roomId: string,
   data: object,
@@ -69,6 +84,7 @@ wss.on("connection", (socket: ExtendedWebSocket) => {
   clientNames.set(socket, name);
   socket.username = name;
   broadcastClientList();
+  broadcastRooms();
 
   socket.on("message", (data, isBinary) => {
     if (isBinary) return;
@@ -112,7 +128,6 @@ wss.on("connection", (socket: ExtendedWebSocket) => {
       }
 
       rooms.get(roomId)!.add(socket);
-      console.log(rooms.get(roomId));
 
       broadcastToRoom(
         roomId,
