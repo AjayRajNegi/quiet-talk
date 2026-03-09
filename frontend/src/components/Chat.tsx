@@ -1,19 +1,14 @@
-import { RefObject, useEffect, useState } from "react";
+import { useState } from "react";
+import { useConnectionStore } from "../stores/connection-store";
 
-type MessageObjectType = {
-  id: string;
-  message: string;
-};
-type ChatProps = {
-  wsRef: RefObject<WebSocket | null>;
-  messageObject: MessageObjectType[];
-};
+export default function Chat() {
+  const messages = useConnectionStore((state) => state.messages);
+  const send = useConnectionStore((state) => state.send);
 
-export default function Chat({ wsRef, messageObject }: ChatProps) {
   const [input, setInput] = useState<string>("");
 
   function sendHandler() {
-    wsRef.current?.send(JSON.stringify({ type: "chat", message: input }));
+    send({ type: "chat", message: input });
     setInput("");
   }
 
@@ -25,7 +20,7 @@ export default function Chat({ wsRef, messageObject }: ChatProps) {
       <div className="w-full h-[94%] flex flex-col justify-between">
         {/* Messages */}
         <ul className="">
-          {messageObject.map((message, index) => (
+          {messages.map((message, index) => (
             <div key={index} className="p-2 mt-1 bg-gray-700 rounded-xl">
               <li className=" flex items-center gap-1">
                 <div className="w-2 h-2 rounded-full bg-white" />
