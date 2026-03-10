@@ -9,6 +9,7 @@ import { useEffect } from "react";
 export default function Home() {
   const connect = useConnectionStore((state) => state.connect);
   const disconnect = useConnectionStore((state) => state.disconnect);
+  const join = useConnectionStore((state) => state.join);
 
   useEffect(() => {
     connect();
@@ -18,6 +19,12 @@ export default function Home() {
     <main className="bg-cyan-400 w-full min-h-screen flex items-center">
       <div className="max-w-7xl w-7xl mx-auto h-[90vh] bg-black flex flex-col md:flex-row rounded-2xl p-5 gap-5 border-2 border-white/70">
         <div className="w-full md:w-1/4 h-fit md:h-full">
+          <button
+            className="px-4 py-2 rounded bg-blue-300 text-white"
+            onClick={() => join("general")}
+          >
+            JOIN
+          </button>
           <div className="rounded-xl border-2 border-white/70 p-2 bg-gray-800 ">
             <Members />
           </div>

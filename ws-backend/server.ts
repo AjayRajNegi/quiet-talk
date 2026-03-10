@@ -5,6 +5,7 @@ const wss = new WebSocketServer({ port: PORT });
 
 const clientNames = new Map<WebSocket, string>();
 const rooms = new Map<string, Set<WebSocket>>();
+const allConnections = new Map<WebSocket, string>();
 let clientCounter = 0;
 
 interface ExtendedWebSocket extends WebSocket {
@@ -13,14 +14,15 @@ interface ExtendedWebSocket extends WebSocket {
 }
 
 function broadcastClientList() {
-  const names = Array.from(clientNames.values());
-  const payload = JSON.stringify({ type: "clients", names });
+  // const names = Array.from(clientNames.values());
+  // const payload = JSON.stringify({ type: "clients", names });
 
-  for (const client of wss.clients) {
-    if (client.readyState === WebSocket.OPEN) {
-      client.send(payload);
-    }
-  }
+  // for (const client of wss.clients) {
+  //   if (client.readyState === WebSocket.OPEN) {
+  //     client.send(payload);
+  //   }
+  // }
+  console.log("Hello");
 }
 
 function broadcastRooms() {
@@ -30,6 +32,7 @@ function broadcastRooms() {
     type: "rooms",
     roomNames,
   });
+  console.log(payload);
 
   for (const client of wss.clients) {
     if (client.readyState === WebSocket.OPEN) {
@@ -81,6 +84,7 @@ function leaveRoom(socket: ExtendedWebSocket) {
 
 wss.on("connection", (socket: ExtendedWebSocket) => {
   const name = `User-${++clientCounter}`;
+  allConnections.set(socket, name);
   clientNames.set(socket, name);
   socket.username = name;
   broadcastClientList();
@@ -141,6 +145,7 @@ wss.on("connection", (socket: ExtendedWebSocket) => {
 
       socket.send(JSON.stringify({ type: "users", users }));
       broadcastClientList();
+      broadcastRooms();
     }
 
     if (msg.type === "chat") {

@@ -14,6 +14,7 @@ interface ConnectionStore {
   connect: () => void;
   disconnect: () => void;
   send: (data: object) => void;
+  join: (room: string) => void;
 }
 
 export const useConnectionStore = create<ConnectionStore>((set, get) => ({
@@ -27,9 +28,9 @@ export const useConnectionStore = create<ConnectionStore>((set, get) => ({
 
     const ws = new WebSocket("ws://localhost:8081");
 
-    ws.addEventListener("open", () => {
-      ws.send(JSON.stringify({ type: "join", room: "general" }));
-    });
+    // ws.addEventListener("open", () => {
+    //   ws.send(JSON.stringify({ type: "join", room: "general" }));
+    // });
 
     ws.addEventListener("message", (event: MessageEvent<string>) => {
       const payload = JSON.parse(event.data);
@@ -76,8 +77,16 @@ export const useConnectionStore = create<ConnectionStore>((set, get) => ({
   },
   send: (data: object) => {
     const { ws } = get();
+    console.log(ws);
     if (ws?.readyState === WebSocket.OPEN) {
       ws.send(JSON.stringify(data));
     }
+  },
+  join: (room: string) => {
+    console.log("hello");
+    const { ws } = get();
+    console.log(ws);
+    if (!ws) return;
+    ws.send(JSON.stringify({ type: "join", room: room }));
   },
 }));
