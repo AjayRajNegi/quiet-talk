@@ -14,15 +14,14 @@ interface ExtendedWebSocket extends WebSocket {
 }
 
 function broadcastClientList() {
-  // const names = Array.from(clientNames.values());
-  // const payload = JSON.stringify({ type: "clients", names });
+  const names = Array.from(clientNames.values());
+  const payload = JSON.stringify({ type: "clients", names });
 
-  // for (const client of wss.clients) {
-  //   if (client.readyState === WebSocket.OPEN) {
-  //     client.send(payload);
-  //   }
-  // }
-  console.log("Hello");
+  for (const client of wss.clients) {
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(payload);
+    }
+  }
 }
 
 function broadcastRooms() {
@@ -32,7 +31,6 @@ function broadcastRooms() {
     type: "rooms",
     roomNames,
   });
-  console.log(payload);
 
   for (const client of wss.clients) {
     if (client.readyState === WebSocket.OPEN) {

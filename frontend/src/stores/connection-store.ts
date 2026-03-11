@@ -10,6 +10,7 @@ interface ConnectionStore {
   messages: MessageObject[];
   clients: string[];
   rooms: string[];
+  isConnectedToRoom: boolean;
 
   connect: () => void;
   disconnect: () => void;
@@ -22,15 +23,12 @@ export const useConnectionStore = create<ConnectionStore>((set, get) => ({
   messages: [],
   clients: [],
   rooms: [],
+  isConnectedToRoom: false,
 
   connect: () => {
     if (get().ws) return;
 
     const ws = new WebSocket("ws://localhost:8081");
-
-    // ws.addEventListener("open", () => {
-    //   ws.send(JSON.stringify({ type: "join", room: "general" }));
-    // });
 
     ws.addEventListener("message", (event: MessageEvent<string>) => {
       const payload = JSON.parse(event.data);
@@ -59,17 +57,18 @@ export const useConnectionStore = create<ConnectionStore>((set, get) => ({
           ],
         }));
       } else if (payload.type === "users") {
-        set({ clients: payload.users });
+        set({ clients: payload.users, isConnectedToRoom: true });
       } else if (payload.type === "rooms") {
         set({ rooms: payload.roomNames });
       }
-      ws.addEventListener("close", ({ code, reason }) => {
-        console.log(`Disconnected (code=${code}, reason=${reason})`);
-        set({ ws: null });
-      });
-
-      set({ ws });
     });
+
+    ws.addEventListener("close", ({ code, reason }) => {
+      console.log(`Disconnected (code=${code}, reason=${reason})`);
+      set({ ws: null });
+    });
+
+    set({ ws });
   },
   disconnect: () => {
     get().ws?.close();
@@ -83,9 +82,8 @@ export const useConnectionStore = create<ConnectionStore>((set, get) => ({
     }
   },
   join: (room: string) => {
-    console.log("hello");
     const { ws } = get();
-    console.log(ws);
+
     if (!ws) return;
     ws.send(JSON.stringify({ type: "join", room: room }));
   },

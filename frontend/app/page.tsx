@@ -10,6 +10,9 @@ export default function Home() {
   const connect = useConnectionStore((state) => state.connect);
   const disconnect = useConnectionStore((state) => state.disconnect);
   const join = useConnectionStore((state) => state.join);
+  const isConnectedToRoom = useConnectionStore(
+    (state) => state.isConnectedToRoom,
+  );
 
   useEffect(() => {
     connect();
@@ -34,7 +37,7 @@ export default function Home() {
         </div>
 
         <div className="w-full md:w-3/4 h-full rounded-2xl border-2 border-white/70">
-          <Chat />
+          {isConnectedToRoom ? <Chat /> : <></>}
         </div>
       </div>
     </main>
