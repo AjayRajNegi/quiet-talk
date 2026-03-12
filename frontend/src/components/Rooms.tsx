@@ -1,11 +1,13 @@
+"use client";
+import { useState } from "react";
 import { useConnectionStore } from "../stores/connection-store";
 
 export default function Rooms() {
+  const [inputRoom, setInputRoom] = useState<string>("");
   const rooms = useConnectionStore((state) => state.rooms);
   const join = useConnectionStore((state) => state.join);
 
   function createRandomString(): string {
-    console.log(`Room-${Math.floor(Math.random() * 1000000)}`);
     return `Room-${Math.floor(Math.random() * 1000000)}`;
   }
 
@@ -24,7 +26,19 @@ export default function Rooms() {
         >
           Create a Room
         </div>
-        <input className="border rounded p-2" placeholder="Join a Room" />
+        <div className="border rounded p-2 flex">
+          <input
+            placeholder="Join a Room"
+            value={inputRoom}
+            onChange={(e) => setInputRoom(e.target.value)}
+          />
+          <button
+            className="border rounded p-1"
+            onClick={() => join(inputRoom)}
+          >
+            join
+          </button>
+        </div>
       </div>
     </>
   );
