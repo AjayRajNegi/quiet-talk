@@ -17,7 +17,7 @@ export default function Home() {
   useEffect(() => {
     connect();
     return () => disconnect();
-  });
+  }, []);
   return (
     <main className="bg-cyan-400 w-full min-h-screen flex items-center">
       <div className="max-w-7xl w-7xl mx-auto h-[90vh] bg-black flex flex-col md:flex-row rounded-2xl p-5 gap-5 border-2 border-white/70">

@@ -46,6 +46,7 @@ function broadcastToRoom(
 ) {
   const room = rooms.get(roomId);
   if (!room) return;
+  console.log("BTR");
 
   room.forEach((client) => {
     if (client.readyState === WebSocket.OPEN && client !== exceptSocket) {
