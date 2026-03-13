@@ -1,5 +1,7 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import Chat from "@/src/components/Chat";
 import Members from "@/src/components/Members";
 import Rooms from "@/src/components/Rooms";
@@ -19,27 +21,31 @@ export default function Home() {
     return () => disconnect();
   }, []);
   return (
-    <main className="bg-cyan-400 w-full min-h-screen flex items-center">
+    <main className=" w-full min-h-screen flex items-center">
       <div className="max-w-7xl w-7xl mx-auto h-[90vh] bg-black flex flex-col md:flex-row rounded-2xl p-5 gap-5 border-2 border-white/70">
         <div className="w-full md:w-1/4 h-fit md:h-full">
-          <button
-            className="px-4 py-2 rounded bg-blue-300 text-white"
-            onClick={() => join("general")}
-          >
+          <Button className="px-4 py-2 rounded" onClick={() => join("general")}>
             JOIN
-          </button>
-          <div className="rounded-xl border-2 border-white/70 p-2 bg-gray-800 ">
-            <Members />
-          </div>
-          <div className="rounded-xl border-2 mt-2 border-white/70 p-2 bg-gray-800 ">
-            <Rooms />
-          </div>
+          </Button>
+          <Card>
+            <CardContent>
+              <Members />
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent>
+              <Rooms />
+            </CardContent>
+          </Card>
         </div>
 
-        <div className="w-full md:w-3/4 h-full rounded-2xl border-2 border-white/70">
-          {isConnectedToRoom ? <Chat /> : <></>}
-        </div>
+        <Card className="w-full md:w-3/4 h-full rounded-2xl ">
+          <CardContent>{isConnectedToRoom ? <Chat /> : <></>}</CardContent>
+        </Card>
       </div>
     </main>
   );
 }
+
+// backdrop-filter: blur(12px);
+// background: color-mix(in oklch, var(--card) 90%, transparent);

@@ -76,7 +76,6 @@ export const useConnectionStore = create<ConnectionStore>((set, get) => ({
   },
   send: (data: object) => {
     const { ws } = get();
-    console.log(ws);
     if (ws?.readyState === WebSocket.OPEN) {
       ws.send(JSON.stringify(data));
     }

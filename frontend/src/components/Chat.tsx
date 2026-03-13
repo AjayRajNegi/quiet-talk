@@ -1,5 +1,8 @@
 import { useState } from "react";
 import { useConnectionStore } from "../stores/connection-store";
+import { Card, CardHeader } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 export default function Chat() {
   const messages = useConnectionStore((state) => state.messages);
@@ -13,20 +16,20 @@ export default function Chat() {
   }
 
   return (
-    <div className="w-full h-full  mx-auto p-6 bg-gray-800 rounded-xl shadow-md">
+    <Card className="w-full h-full  mx-auto p-6  rounded-xl shadow-md">
       {/* Header */}
-      <h2 className="text-3xl font-semibold text-white mb-4">Messages</h2>
+      <CardHeader>
+        <h2 className="text-3xl font-semibold text-white mb-4">Messages</h2>
+      </CardHeader>
 
-      <div className="w-full h-[94%] flex flex-col justify-between">
+      <div className="w-full overflow-y-scroll flex flex-col justify-between">
         {/* Messages */}
         <ul className="">
           {messages.map((message, index) => (
             <div key={index} className="p-2 mt-1 bg-gray-700 rounded-xl">
               <li className=" flex items-center gap-1">
                 <div className="w-2 h-2 rounded-full bg-white" />
-                <p className="text-green-500 font-semibold text-sm">
-                  {message.id}
-                </p>
+                <p className="text-muted font-semibold text-sm">{message.id}</p>
               </li>
               <p className="text-white pl-3">{message.message}</p>
             </div>
@@ -34,21 +37,21 @@ export default function Chat() {
         </ul>
         {/* Input field and Send button */}
         <div className="flex items-center gap-x-3 ">
-          <input
+          <Input
             type="text"
             placeholder="Type your message..."
-            className="w-full px-4 py-2 bg-gray-700 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-green-500"
+            className="w-full px-4 py-2  rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-green-500"
             value={input}
             onChange={(e) => setInput(e.target.value)}
           />
-          <button
-            className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-xl shadow-md"
+          <Button
+            className=" text-white font-bold py-2 px-4 rounded-xl shadow-md"
             onClick={() => sendHandler()}
           >
             Send
-          </button>
+          </Button>
         </div>
       </div>
-    </div>
+    </Card>
   );
 }
