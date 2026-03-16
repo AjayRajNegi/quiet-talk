@@ -112,6 +112,26 @@ function leaveRoom(socket: ExtendedWebSocket) {
   socket.roomId = undefined;
 }
 
+function leaveHouse(socket: ExtendedWebSocket) {
+  const houseId = socket.houseId;
+  if (!houseId) return;
+
+  const house = houses.get(houseId);
+  if (!house) return;
+
+  house.delete(socket);
+
+  if (house.size === 0) {
+    houses.delete(houseId);
+  } else {
+    broadcastToHouses(houseId, {
+      type: "notification",
+      message: `${socket.username} left the house.`,
+    });
+  }
+
+  socket.houseId = undefined;
+}
 wss.on("connection", (socket: ExtendedWebSocket) => {
   const name = `User-${++clientCounter}`;
   clientNames.set(socket, name);
@@ -180,7 +200,7 @@ wss.on("connection", (socket: ExtendedWebSocket) => {
     }
 
     if (msg.type === "joinHouse") {
-      //if (socket.roomId) leaveRoom(socket);
+      if (socket.houseId) leaveHouse(socket);
 
       const houseId = msg.house!;
       const username = msg.username ?? name;
