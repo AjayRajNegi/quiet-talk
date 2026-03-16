@@ -10,12 +10,14 @@ interface ConnectionStore {
   messages: MessageObject[];
   clients: string[];
   rooms: string[];
+  houses: string[];
   isConnectedToRoom: boolean;
 
   connect: () => void;
   disconnect: () => void;
   send: (data: object) => void;
   join: (room: string) => void;
+  joinHouse: (house: string) => void;
 }
 
 export const useConnectionStore = create<ConnectionStore>((set, get) => ({
@@ -23,7 +25,8 @@ export const useConnectionStore = create<ConnectionStore>((set, get) => ({
   messages: [],
   clients: [],
   rooms: [],
-  isConnectedToRoom: false,
+  houses: [],
+  isConnectedToRoom: true,
 
   connect: () => {
     if (get().ws) return;
@@ -60,6 +63,8 @@ export const useConnectionStore = create<ConnectionStore>((set, get) => ({
         set({ clients: payload.users, isConnectedToRoom: true });
       } else if (payload.type === "rooms") {
         set({ rooms: payload.roomNames });
+      } else if (payload.type === "houses") {
+        set({ houses: payload.houseNames });
       }
     });
 
@@ -85,5 +90,11 @@ export const useConnectionStore = create<ConnectionStore>((set, get) => ({
 
     if (!ws) return;
     ws.send(JSON.stringify({ type: "join", room: room }));
+  },
+  joinHouse: (house: string) => {
+    const { ws } = get();
+
+    if (!ws) return;
+    ws.send(JSON.stringify({ type: "joinHouse", house: house }));
   },
 }));

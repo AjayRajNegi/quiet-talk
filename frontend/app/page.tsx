@@ -2,6 +2,7 @@
 
 import { Card, CardContent } from "@/components/ui/card";
 import Chat from "@/src/components/Chat";
+import Houses from "@/src/components/Houses";
 import Members from "@/src/components/Members";
 import Rooms from "@/src/components/Rooms";
 import { useConnectionStore } from "@/src/stores/connection-store";
@@ -30,6 +31,9 @@ export default function Home() {
           <Card>
             <CardContent>
               <Rooms />
+            </CardContent>
+            <CardContent>
+              <Houses />
             </CardContent>
           </Card>
         </div>

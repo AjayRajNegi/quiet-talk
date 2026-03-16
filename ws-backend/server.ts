@@ -5,12 +5,14 @@ const wss = new WebSocketServer({ port: PORT });
 
 const clientNames = new Map<WebSocket, string>();
 const rooms = new Map<string, Set<WebSocket>>();
-const allConnections = new Map<WebSocket, string>();
+const houses = new Map<string, Set<WebSocket>>();
+
 let clientCounter = 0;
 
 interface ExtendedWebSocket extends WebSocket {
   username?: string;
   roomId?: string;
+  houseId?: string;
 }
 
 function broadcastClientList() {
@@ -39,6 +41,21 @@ function broadcastRooms() {
   }
 }
 
+function broadcastHouses() {
+  const houseNames = Array.from(houses.keys());
+
+  const payload = JSON.stringify({
+    type: "houses",
+    houseNames,
+  });
+
+  for (const client of wss.clients) {
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(payload);
+    }
+  }
+}
+
 function broadcastToRoom(
   roomId: string,
   data: object,
@@ -48,6 +65,21 @@ function broadcastToRoom(
   if (!room) return;
 
   room.forEach((client) => {
+    if (client.readyState === WebSocket.OPEN && client !== exceptSocket) {
+      client.send(JSON.stringify(data));
+    }
+  });
+}
+
+function broadcastToHouses(
+  houseId: string,
+  data: object,
+  exceptSocket: WebSocket | null = null,
+) {
+  const house = houses.get(houseId);
+  if (!house) return;
+
+  house.forEach((client) => {
     if (client.readyState === WebSocket.OPEN && client !== exceptSocket) {
       client.send(JSON.stringify(data));
     }
@@ -80,13 +112,33 @@ function leaveRoom(socket: ExtendedWebSocket) {
   socket.roomId = undefined;
 }
 
+function leaveHouse(socket: ExtendedWebSocket) {
+  const houseId = socket.houseId;
+  if (!houseId) return;
+
+  const house = houses.get(houseId);
+  if (!house) return;
+
+  house.delete(socket);
+
+  if (house.size === 0) {
+    houses.delete(houseId);
+  } else {
+    broadcastToHouses(houseId, {
+      type: "notification",
+      message: `${socket.username} left the house.`,
+    });
+  }
+
+  socket.houseId = undefined;
+}
 wss.on("connection", (socket: ExtendedWebSocket) => {
   const name = `User-${++clientCounter}`;
-  allConnections.set(socket, name);
   clientNames.set(socket, name);
   socket.username = name;
   broadcastClientList();
   broadcastRooms();
+  broadcastHouses();
 
   socket.on("message", (data, isBinary) => {
     if (isBinary) return;
@@ -94,6 +146,7 @@ wss.on("connection", (socket: ExtendedWebSocket) => {
     let msg: {
       type: string;
       room?: string;
+      house?: string;
       username?: string;
       message?: string;
     };
@@ -115,7 +168,7 @@ wss.on("connection", (socket: ExtendedWebSocket) => {
       return;
     }
 
-    if (msg.type === "join") {
+    if (msg.type === "joinRoom") {
       if (socket.roomId) leaveRoom(socket);
 
       const roomId = msg.room!;
@@ -144,6 +197,36 @@ wss.on("connection", (socket: ExtendedWebSocket) => {
       socket.send(JSON.stringify({ type: "users", users }));
       broadcastClientList();
       broadcastRooms();
+    }
+
+    if (msg.type === "joinHouse") {
+      if (socket.houseId) leaveHouse(socket);
+
+      const houseId = msg.house!;
+      const username = msg.username ?? name;
+
+      socket.houseId = houseId;
+      socket.username = username;
+      clientNames.set(socket, username);
+
+      if (!houses.has(houseId)) {
+        houses.set(houseId, new Set());
+      }
+
+      houses.get(houseId)!.add(socket);
+      broadcastToHouses(
+        houseId,
+        { type: "notification", message: `${username} joined the room.` },
+        socket,
+      );
+
+      const users = Array.from(houses.get(houseId)!)
+        .map((c) => (c as ExtendedWebSocket).username)
+        .filter(Boolean);
+
+      socket.send(JSON.stringify({ type: "users", users }));
+      broadcastClientList();
+      broadcastHouses();
     }
 
     if (msg.type === "chat") {
